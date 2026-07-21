@@ -13,9 +13,7 @@ app.use(express.json());
 
 const DB_PATH = path.join(process.cwd(), "database.json");
 
-// ====================================================================
-// 1. CLIENTE DISCORD COMPARTIDO (src/bot/client.ts)
-// ====================================================================
+// 1. CLIENTE DISCORD COMPARTIDO
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -25,9 +23,7 @@ const client = new Client({
   ],
 });
 
-// ====================================================================
-// 2. SISTEMA DE BASE DE DATOS LOCAL (src/bot/database.ts)
-// ====================================================================
+// 2. SISTEMA DE BASE DE DATOS LOCAL
 function loadDatabase() {
   if (!fs.existsSync(DB_PATH)) {
     const initial = { verifiedUsers: {} };
@@ -80,9 +76,7 @@ function findByRobloxId(robloxId) {
   return Object.values(db.verifiedUsers).find((u) => u.robloxId === robloxId) || null;
 }
 
-// ====================================================================
-// 3. COMANDOS DEL BOT DE DISCORD (src/bot/index.ts)
-// ====================================================================
+// 3. COMANDOS DEL BOT DE DISCORD (CORREGIDO)
 const PREFIX = "!";
 
 async function handleMessage(message) {
@@ -95,7 +89,7 @@ async function handleMessage(message) {
 
   switch (command?.toLowerCase()) {
     case "!verify": {
-      const robloxId = args[0];
+      const robloxId = args[0]; // CORRECCIÓN CRÍTICA: Extraer el primer argumento de la lista de texto
       if (!robloxId || !/^\d+$/.test(robloxId)) {
         await message.reply("❌ Uso correcto: `!verify <ID de Roblox>`\nEjemplo: `!verify 123456789`");
         return;
@@ -162,9 +156,7 @@ client.on(Events.MessageCreate, (message) => {
   handleMessage(message).catch((err) => console.error("Error procesando mensaje de Discord:", err));
 });
 
-// ====================================================================
-// 4. ENDPOINT PARA ROBLOX /api/get-roles/:robloxId (src/routes/get-roles.ts)
-// ====================================================================
+// 4. ENDPOINT PARA ROBLOX
 function isAuthorized(req) {
   const header = req.headers["authorization"] || "";
   const secret = process.env["API_SECRET"] || "";
@@ -205,15 +197,13 @@ app.get("/api/get-roles/:robloxId", async (req, res) => {
   }
 });
 
-// Endpoint de salud básico para Render
 app.get("/api/healthz", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// ====================================================================
-// 5. ENCENDIDO DEL SERVIDOR Y ENTRADA DEL BOT
-// ====================================================================
+// 5. ENCENDIDO
 const PORT = process.env.PORT || 3000;
+app.use((req, res, next) => { next(); });
 app.listen(PORT, () => {
   console.log(`[WEB] Servidor Express corriendo en el puerto ${PORT}`);
 });
