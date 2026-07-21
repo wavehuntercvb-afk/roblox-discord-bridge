@@ -61,21 +61,20 @@ function findByRobloxId(robloxId) {
   return Object.values(db.verifiedUsers).find((u) => String(u.robloxId) === String(robloxId)) || null;
 }
 
-// 3. COMANDOS DEL BOT (MÉTODO REVISADO SIN COMPLICACIONES)
+// 3. COMANDOS DEL BOT (CORREGIDO AL 100%)
 const PREFIX = "!";
 client.on(Events.MessageCreate, async (message) => {
-  if (message.author.bot) return;
-  if (!message.content.startsWith(PREFIX)) return;
+  if (message.author.bot || !message.content.startsWith(PREFIX)) return;
 
-  // Cortar texto de forma segura
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-  const command = args.shift().toLowerCase();
+  const parts = message.content.trim().split(/\s+/);
+  const command = parts[0].slice(PREFIX.length).toLowerCase();
+  const args = parts.slice(1);
 
   const discordId = message.author.id;
   const username = message.author.username;
 
   if (command === "verify") {
-    const robloxId = args[0]; // Captura estrictamente el primer argumento numérico
+    const robloxId = args[0]; // CORRECCIÓN DEFINITIVA: Extraer el primer elemento como texto puro
     
     if (!robloxId || !/^\d+$/.test(robloxId)) {
       await message.reply("❌ Uso correcto: `!verify <ID de Roblox>`\nEjemplo: `!verify 123456789`").catch(console.error);
@@ -84,7 +83,7 @@ client.on(Events.MessageCreate, async (message) => {
     
     verifyUser(discordId, username, robloxId);
     await message.reply(`✅ **${username}** verificado correctamente con ID de Roblox \`${robloxId}\`.`).catch(console.error);
-    console.log(`[BOT] Registrado: ${username} -> Roblox: ${robloxId}`);
+    console.log(`[BOT] Registrado con éxito: ${username} -> Roblox: ${robloxId}`);
   }
 });
 
@@ -111,7 +110,7 @@ app.get("/api/get-roles/:robloxId", async (req, res) => {
   }
 });
 
-// URL DIRECTA DE EMERGENCIA PARA EL NAVEGADOR
+// URL DE EMERGENCIA PARA EL NAVEGADOR
 app.get("/api/verificar", (req, res) => {
   const robloxId = req.query.roblox;
   const discordId = req.query.discord;
