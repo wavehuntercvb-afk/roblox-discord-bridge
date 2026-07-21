@@ -65,18 +65,23 @@ function findByRobloxId(robloxId) {
 const PREFIX = "!";
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot || !message.content.startsWith(PREFIX)) return;
-  const [command, ...args] = message.content.trim().split(/\s+/);
+  
+  const parts = message.content.trim().split(/\s+/);
+  const command = parts[0];
+  const args = parts.slice(1);
+  
   const discordId = message.author.id;
   const username = message.author.username;
 
   if (command?.toLowerCase() === "!verify") {
-    const robloxId = args[0]; // Captura el número real ingresado
+    const robloxId = args[0]; // CORRECCIÓN CRÍTICA: Captura el primer elemento del texto ingresado
     if (!robloxId || !/^\d+$/.test(robloxId)) {
-      await message.reply("❌ Uso correcto: `!verify <ID de Roblox>`");
+      await message.reply("❌ Uso correcto: `!verify <ID de Roblox>`\nEjemplo: `!verify 123456789`");
       return;
     }
     verifyUser(discordId, username, robloxId);
     await message.reply(`✅ **${username}** verificado correctamente con ID de Roblox \`${robloxId}\`.`);
+    console.log(`[BOT] Usuario verificado: ${username} (Roblox: ${robloxId})`);
   }
 });
 
@@ -98,7 +103,7 @@ app.get("/api/get-roles/:robloxId", async (req, res) => {
     const member = await guild.members.fetch(user.id);
     const roles = member.roles.cache.filter((r) => r.id !== guild.id).map((r) => r.id);
     return res.json({ success: true, roles });
-  } catch {
+  } catch (error) {
     return res.status(404).json({ success: false, error: "No member" });
   }
 });
@@ -115,4 +120,7 @@ app.get("/api/verificar", (req, res) => {
 client.once(Events.ClientReady, (c) => console.log(`[BOT] Conectado: ${c.user.tag}`));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`[WEB] Puerto ${PORT}`));
-if (process.env["DISCORD_TOKEN"]) client.login(process.env["DISCORD_TOKEN"]);
+
+if (process.env["DISCORD_TOKEN"]) {
+  client.login(process.env["DISCORD_TOKEN"]);
+}
